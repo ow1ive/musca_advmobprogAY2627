@@ -8,39 +8,37 @@ class SettingsScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final themeModel = context.watch<ThemeModel>();
+    final themeModel = context.watch<ThemeProvider>();
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Theme Settings')),
+      appBar: AppBar(title: const Text('Settings')),
       body: Padding(
         padding: const EdgeInsets.all(16),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
-              'Choose an app theme',
+              'Appearance',
               style: Theme.of(context).textTheme.headlineSmall,
             ),
             const SizedBox(height: 16),
+            // Enhancement 3: Move dark/light mode control into Settings as a single switch.
             Card(
-              child: ListTile(
-                leading: const Icon(Icons.light_mode_outlined),
-                title: const Text('Light mode'),
-                trailing: !themeModel.isDark
-                    ? const Icon(Icons.check_circle, color: Colors.green)
-                    : null,
-                onTap: () => themeModel.setDarkMode(false),
-              ),
-            ),
-            const SizedBox(height: 12),
-            Card(
-              child: ListTile(
-                leading: const Icon(Icons.dark_mode_outlined),
+              child: SwitchListTile(
+                secondary: Icon(
+                  themeModel.isDark
+                      ? Icons.dark_mode_outlined
+                      : Icons.light_mode_outlined,
+                ),
                 title: const Text('Dark mode'),
-                trailing: themeModel.isDark
-                    ? const Icon(Icons.check_circle, color: Colors.green)
-                    : null,
-                onTap: () => themeModel.setDarkMode(true),
+                subtitle: Text(
+                  themeModel.isDark
+                      ? 'Dark theme is enabled'
+                      : 'Light theme is enabled',
+                ),
+                value: themeModel.isDark,
+                // Enhancement 3: Toggle app theme directly from this settings switch.
+                onChanged: (_) => themeModel.toggleTheme(),
               ),
             ),
           ],

@@ -31,9 +31,9 @@ dependencies:
   flutter:
     sdk: flutter
 
-  flutter_dotenv: ^5.2.1
+  flutter_dotenv: ^6.0.1
   flutter_screenutil: ^5.9.3
-  http: ^1.2.2
+  http: ^1.5.0
 
   provider: ^6.1.5
 
@@ -63,6 +63,7 @@ flutter:
   
   assets:
     - assets/.env
+    - assets/images/
 
   # To add assets to your application, add an assets section, like this:
   # assets:
