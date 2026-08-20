@@ -17,7 +17,8 @@ samples, guidance on mobile development, and a full API reference.
 
 ## Lab Activity 1: Laboratory Discussion
 
-In this activity, I learned the basic structure of a Flutter project and how each part of the app works together. I practiced setting up the project, understanding the folder organization, and identifying where UI code, assets, and configuration files are placed. I also learned how widgets are combined to build the interface and how Flutter uses reusable components to make development more organized.
+In this activity, I learned that **setState and Provider** can both be used to manage the state of a Flutter app, but they are used in different situations. I understand `setState` as something useful for simple changes within one widget, such as updating a value or changing something on the screen. On the other hand, **Provider** is more useful when the same data or state needs to be shared between different widgets or screens. It also helps keep the code more organized because the state is managed separately from the UI.
 
-This activity helped me build a strong foundation before moving to more advanced topics. By creating and running the app, I became more familiar with the Flutter workflow, including editing code, testing changes, and understanding the app lifecycle. Overall, Lab Activity 1 improved my confidence in building mobile interfaces and prepared me for implementing models, services, and API-based features in later activities.
+For me, the main difference is that `setState` is simpler and works well for small or temporary changes, while Provider is more useful when the application becomes bigger and has more shared data. Provider uses `ChangeNotifier` to notify the widgets when something changes, so the UI can update when needed. Through this activity, I understood why Provider is useful for keeping the application organized and easier to maintain as the project becomes more complex.
+
 
