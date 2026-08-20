@@ -5,8 +5,6 @@ import 'package:http/http.dart' as http;
 import '../constants.dart';
 import '../models/cart.dart';
 
-const int cartUserId = 5;
-
 class CartService {
   static final Map<int, Cart> _cachedUserCarts = {};
 

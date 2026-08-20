@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 
+import '../services/user_service.dart';
 import '../widgets/custom_text.dart';
 import 'cart_screen.dart';
+import 'profile_screen.dart';
 import 'product_screen.dart';
 
 class HomeScreen extends StatefulWidget {
@@ -16,8 +18,30 @@ class HomeScreen extends StatefulWidget {
 
 class _HomeScreenState extends State<HomeScreen> {
   static const Color _cartPrimary = Color(0xFF3346A4);
+  final UserService _userService = UserService();
   int _selectedIndex = 0;
+  String _profileHeaderName = 'Profile';
   final PageController _pageController = PageController();
+
+  @override
+  void initState() {
+    super.initState();
+    _loadProfileHeaderName();
+  }
+
+  Future<void> _loadProfileHeaderName() async {
+    final user = await _userService.getUser();
+
+    if (!mounted) {
+      return;
+    }
+
+    setState(() {
+      _profileHeaderName = user.firstName.isNotEmpty
+          ? user.firstName
+          : (user.username.isNotEmpty ? user.username : 'Profile');
+    });
+  }
 
   void _onTappedBar(int value) {
     setState(() {
@@ -29,6 +53,8 @@ class _HomeScreenState extends State<HomeScreen> {
   @override
   Widget build(BuildContext context) {
     final isCartTab = _selectedIndex == 1;
+    final isProfileTab = _selectedIndex == 2;
+    final hasAccentHeader = isCartTab || isProfileTab;
 
     return PopScope(
       canPop: false,
@@ -36,9 +62,9 @@ class _HomeScreenState extends State<HomeScreen> {
         backgroundColor: isCartTab ? const Color(0xFFF7F4FB) : null,
         appBar: AppBar(
           automaticallyImplyLeading: false,
-          elevation: isCartTab ? 0 : 2,
-          backgroundColor: isCartTab ? _cartPrimary : null,
-          foregroundColor: isCartTab ? Colors.white : null,
+          elevation: hasAccentHeader ? 0 : 2,
+          backgroundColor: hasAccentHeader ? _cartPrimary : null,
+          foregroundColor: hasAccentHeader ? Colors.white : null,
           title: _selectedIndex == 0
               ? Image.asset(
                   'assets/images/nubdexchange_logo (1).png',
@@ -48,7 +74,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   text: _selectedIndex == 1
                       ? 'Cart'
                       : _selectedIndex == 2
-                      ? 'Profile'
+                      ? _profileHeaderName
                       : 'Home',
                   fontSize: 20.sp,
                   fontWeight: FontWeight.w600,
@@ -67,7 +93,7 @@ class _HomeScreenState extends State<HomeScreen> {
           children: const <Widget>[
             ProductScreen(),
             CartScreen(),
-            _ProfilePlaceholder(),
+            ProfileScreen(),
           ],
           onPageChanged: (page) {
             setState(() {
@@ -141,15 +167,6 @@ class _HomeScreenState extends State<HomeScreen> {
   void dispose() {
     _pageController.dispose();
     super.dispose();
-  }
-}
-
-class _ProfilePlaceholder extends StatelessWidget {
-  const _ProfilePlaceholder();
-
-  @override
-  Widget build(BuildContext context) {
-    return const Center(child: Text('Profile'));
   }
 }
 

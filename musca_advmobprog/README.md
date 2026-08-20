@@ -15,8 +15,8 @@ For help getting started with Flutter development, view the
 [online documentation](https://docs.flutter.dev/), which offers tutorials,
 samples, guidance on mobile development, and a full API reference.
 
-## Lab Activity 3: Discussion
+## Lab Activity 4: Laboratory Discussion
 
-In this activity, I learned how the Cart Model, Cart Service, and Cart Screen work together when getting data from an API. The Cart Model is used to organize the information from the API, such as the cart ID, user ID, products, quantity, and total. The Cart Service is responsible for calling the API and converting the JSON response into data that the app can understand. Then, the Cart Screen displays that information to the user. I also learned that the products in the cart can still use the existing `detail_screen.dart`, so there is no need to create another detail screen.
+In this activity, I learned how the User Model, Service, and Screen work together to display the user's information from the API. The User Model organizes the information about the user, while the User Service handles the login and gets the user's data from the API. The Profile Screen then uses that data to show the user's information on the app. I also learned that separating these parts makes the code easier to understand because each part has its own responsibility.
 
-This activity also helped me understand the design pattern better because each part of the app has its own responsibility. The model handles the data, the service handles the API, and the screen handles what the user sees and interacts with. For the Cart endpoint, getting data by ID can be used to retrieve data based on a specific ID, such as a user ID, instead of getting all the available carts.
+The updated design also helped me understand how saved user data can be used in other parts of the app. After logging in, the user's information is saved using SharedPreferences. The saved user ID can then be retrieved and used in the Cart Screen to get the cart that belongs to that specific user. This means the app does not need to manually set a user ID every time. Through this activity, I understood better how authentication, local storage, API services, models, and screens can work together in one application.

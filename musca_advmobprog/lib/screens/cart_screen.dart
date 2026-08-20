@@ -3,6 +3,7 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 
 import '../models/cart.dart';
 import '../services/cart_service.dart';
+import '../services/user_service.dart';
 import '../widgets/custom_text.dart';
 import 'detail_screen.dart';
 
@@ -18,14 +19,22 @@ class _CartScreenState extends State<CartScreen> {
   static const Color _accent = Color(0xFFFDBE2D);
   static const Color _secondaryText = Color(0xFF9E98A8);
   final CartService _cartService = CartService();
+  final UserService _userService = UserService();
   late Future<Cart> _cartFuture;
+  int _activeUserId = 1;
   bool _isUpdatingCart = false;
 
   @override
   void initState() {
     super.initState();
-    // ENHANCEMENT 3: Get cart by user ID using DummyJSON Cart API.
-    _cartFuture = _cartService.getCartByUserId(cartUserId);
+    // ENHANCEMENT 3: Resolve cart using the authenticated user's saved id.
+    _cartFuture = _loadCartForLoggedInUser();
+  }
+
+  Future<Cart> _loadCartForLoggedInUser() async {
+    final userId = await _userService.getLoggedInUserId();
+    _activeUserId = userId;
+    return _cartService.getCartByUserId(userId);
   }
 
   Future<void> _updateItemQuantity({
@@ -39,11 +48,11 @@ class _CartScreenState extends State<CartScreen> {
     try {
       final updatedCart = increase
           ? await _cartService.increaseCartItemQuantity(
-              userId: cartUserId,
+              userId: _activeUserId,
               product: item,
             )
           : await _cartService.decreaseCartItemQuantity(
-              userId: cartUserId,
+              userId: _activeUserId,
               product: item,
             );
 
@@ -93,7 +102,7 @@ class _CartScreenState extends State<CartScreen> {
           );
         }
 
-        final cart = snapshot.data ?? const Cart.empty(userId: cartUserId);
+        final cart = snapshot.data ?? Cart.empty(userId: _activeUserId);
 
         if (cart.products.isEmpty) {
           return Center(
@@ -124,7 +133,7 @@ class _CartScreenState extends State<CartScreen> {
                   itemBuilder: (context, index) {
                     final item = allItems[index];
 
-                    // ENHANCEMENT 3: Render only the selected user's cart.
+                    // ENHANCEMENT 3: Render only the authenticated user's cart.
                     return _CartItemCard(
                       item: item,
                       isUpdating: _isUpdatingCart,

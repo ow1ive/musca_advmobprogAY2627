@@ -3,6 +3,7 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 
 import '../models/product.dart';
 import '../services/cart_service.dart';
+import '../services/user_service.dart';
 import '../widgets/custom_text.dart';
 
 class ProductDetailsScreen extends StatefulWidget {
@@ -16,6 +17,7 @@ class ProductDetailsScreen extends StatefulWidget {
 
 class _ProductDetailsScreenState extends State<ProductDetailsScreen> {
   final CartService _cartService = CartService();
+  final UserService _userService = UserService();
   bool _showFullDescription = false;
   bool _isAddingToCart = false;
 
@@ -25,9 +27,11 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen> {
     });
 
     try {
+      final userId = await _userService.getLoggedInUserId();
+
       // ENHANCEMENT 3: Add selected product to cart using DummyJSON POST endpoint.
       await _cartService.addToCart(
-        userId: cartUserId,
+        userId: userId,
         productId: widget.product.id,
         quantity: 1,
       );
@@ -39,7 +43,7 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen> {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(
-            '${widget.product.title} added to cart for user $cartUserId',
+            '${widget.product.title} added to cart for user $userId',
           ),
         ),
       );

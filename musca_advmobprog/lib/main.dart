@@ -5,6 +5,8 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:provider/provider.dart';
 
 import 'screens/home_screen.dart';
+import 'screens/signin_screen.dart';
+import 'screens/splash_screen.dart';
 import 'screens/settings_screen.dart';
 
 import 'providers/theme_provider.dart';
@@ -38,8 +40,10 @@ class RoblesAdvMobProg extends StatelessWidget {
             darkTheme: ThemeData.dark(),
             themeMode: themeModel.isDark ? ThemeMode.dark : ThemeMode.light,
             title: 'E-Commerce App',
-            initialRoute: '/home',
+            initialRoute: '/splash',
             routes: {
+              '/splash': (context) => const SplashScreen(),
+              '/signin': (context) => const SigninScreen(),
               '/home': (context) => const HomeScreen(),
               '/settings': (context) => const SettingsScreen(),
             },
