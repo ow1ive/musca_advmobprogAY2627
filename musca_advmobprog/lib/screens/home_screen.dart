@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 
 import '../widgets/custom_text.dart';
+import 'cart_screen.dart';
 import 'product_screen.dart';
 
 class HomeScreen extends StatefulWidget {
@@ -14,6 +15,7 @@ class HomeScreen extends StatefulWidget {
 }
 
 class _HomeScreenState extends State<HomeScreen> {
+  static const Color _cartPrimary = Color(0xFF3346A4);
   int _selectedIndex = 0;
   final PageController _pageController = PageController();
 
@@ -26,12 +28,17 @@ class _HomeScreenState extends State<HomeScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final isCartTab = _selectedIndex == 1;
+
     return PopScope(
       canPop: false,
       child: Scaffold(
+        backgroundColor: isCartTab ? const Color(0xFFF7F4FB) : null,
         appBar: AppBar(
           automaticallyImplyLeading: false,
-          elevation: 2,
+          elevation: isCartTab ? 0 : 2,
+          backgroundColor: isCartTab ? _cartPrimary : null,
+          foregroundColor: isCartTab ? Colors.white : null,
           title: _selectedIndex == 0
               ? Image.asset(
                   'assets/images/nubdexchange_logo (1).png',
@@ -39,12 +46,13 @@ class _HomeScreenState extends State<HomeScreen> {
                 )
               : CustomText(
                   text: _selectedIndex == 1
-                      ? 'Chat'
+                      ? 'Cart'
                       : _selectedIndex == 2
                       ? 'Profile'
                       : 'Home',
                   fontSize: 20.sp,
                   fontWeight: FontWeight.w600,
+                  fontFamily: 'Poppins',
                 ),
           actions: [
             IconButton(
@@ -58,7 +66,7 @@ class _HomeScreenState extends State<HomeScreen> {
           controller: _pageController,
           children: const <Widget>[
             ProductScreen(),
-            _ChatPlaceholder(),
+            CartScreen(),
             _ProfilePlaceholder(),
           ],
           onPageChanged: (page) {
@@ -67,16 +75,63 @@ class _HomeScreenState extends State<HomeScreen> {
             });
           },
         ),
-        bottomNavigationBar: BottomNavigationBar(
-          showSelectedLabels: false,
-          showUnselectedLabels: false,
-          onTap: _onTappedBar,
-          items: const [
-            BottomNavigationBarItem(icon: Icon(Icons.shop_2), label: 'Shop'),
-            BottomNavigationBarItem(icon: Icon(Icons.chat), label: 'Chat'),
-            BottomNavigationBarItem(icon: Icon(Icons.person), label: 'Profile'),
-          ],
-          currentIndex: _selectedIndex,
+        // ENHANCEMENT 2: Chat converted from bottom navigation to FloatingActionButton.
+        floatingActionButton: isCartTab
+            // ENHANCEMENT 2: Hide Chat FAB on cart_screen.
+            ? null
+            : FloatingActionButton(
+                backgroundColor: isCartTab
+                    ? _cartPrimary
+                    : Theme.of(context).colorScheme.primary,
+                foregroundColor: Colors.white,
+                elevation: 6,
+                onPressed: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (_) => const _ChatScreen()),
+                  );
+                },
+                child: Icon(Icons.chat_bubble_rounded, size: 24.sp),
+              ),
+        floatingActionButtonLocation: FloatingActionButtonLocation.endFloat,
+        bottomNavigationBar: BottomAppBar(
+          color: isCartTab
+              ? const Color(0xFFF7F4FB)
+              : Theme.of(context).cardColor,
+          child: SizedBox(
+            height: 64.h,
+            child: Row(
+              children: [
+                Expanded(
+                  child: _NavAction(
+                    icon: Icons.work_outline,
+                    isSelected: _selectedIndex == 0,
+                    selectedColor: isCartTab ? _cartPrimary : null,
+                    unselectedColor: isCartTab ? const Color(0xFF78707E) : null,
+                    onTap: () => _onTappedBar(0),
+                  ),
+                ),
+                Expanded(
+                  child: _NavAction(
+                    icon: Icons.shopping_cart_checkout,
+                    isSelected: _selectedIndex == 1,
+                    selectedColor: isCartTab ? _cartPrimary : null,
+                    unselectedColor: isCartTab ? const Color(0xFF78707E) : null,
+                    onTap: () => _onTappedBar(1),
+                  ),
+                ),
+                Expanded(
+                  child: _NavAction(
+                    icon: Icons.person,
+                    isSelected: _selectedIndex == 2,
+                    selectedColor: isCartTab ? _cartPrimary : null,
+                    unselectedColor: isCartTab ? const Color(0xFF78707E) : null,
+                    onTap: () => _onTappedBar(2),
+                  ),
+                ),
+              ],
+            ),
+          ),
         ),
       ),
     );
@@ -89,20 +144,59 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 }
 
-class _ChatPlaceholder extends StatelessWidget {
-  const _ChatPlaceholder();
-
-  @override
-  Widget build(BuildContext context) {
-    return const Center(child: Text('Chat'));
-  }
-}
-
 class _ProfilePlaceholder extends StatelessWidget {
   const _ProfilePlaceholder();
 
   @override
   Widget build(BuildContext context) {
     return const Center(child: Text('Profile'));
+  }
+}
+
+class _NavAction extends StatelessWidget {
+  const _NavAction({
+    required this.icon,
+    required this.isSelected,
+    required this.onTap,
+    this.selectedColor,
+    this.unselectedColor,
+  });
+
+  final IconData icon;
+  final bool isSelected;
+  final VoidCallback onTap;
+  final Color? selectedColor;
+  final Color? unselectedColor;
+
+  @override
+  Widget build(BuildContext context) {
+    final color = isSelected
+        ? (selectedColor ?? Theme.of(context).colorScheme.primary)
+        : (unselectedColor ?? Theme.of(context).iconTheme.color);
+
+    return InkWell(
+      onTap: onTap,
+      child: Center(
+        child: Icon(icon, color: color, size: 24.sp),
+      ),
+    );
+  }
+}
+
+class _ChatScreen extends StatelessWidget {
+  const _ChatScreen();
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(title: const Text('Chat')),
+      body: Center(
+        child: CustomText(
+          text: 'Chat screen placeholder',
+          fontSize: 18.sp,
+          fontWeight: FontWeight.w600,
+        ),
+      ),
+    );
   }
 }

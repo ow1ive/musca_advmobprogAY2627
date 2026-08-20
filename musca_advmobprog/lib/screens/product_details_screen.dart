@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 
 import '../models/product.dart';
+import '../services/cart_service.dart';
 import '../widgets/custom_text.dart';
 
 class ProductDetailsScreen extends StatefulWidget {
@@ -14,7 +15,50 @@ class ProductDetailsScreen extends StatefulWidget {
 }
 
 class _ProductDetailsScreenState extends State<ProductDetailsScreen> {
+  final CartService _cartService = CartService();
   bool _showFullDescription = false;
+  bool _isAddingToCart = false;
+
+  Future<void> _addToCart() async {
+    setState(() {
+      _isAddingToCart = true;
+    });
+
+    try {
+      // ENHANCEMENT 3: Add selected product to cart using DummyJSON POST endpoint.
+      await _cartService.addToCart(
+        userId: cartUserId,
+        productId: widget.product.id,
+        quantity: 1,
+      );
+
+      if (!mounted) {
+        return;
+      }
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            '${widget.product.title} added to cart for user $cartUserId',
+          ),
+        ),
+      );
+    } catch (error) {
+      if (!mounted) {
+        return;
+      }
+
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('Unable to add to cart: $error')));
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isAddingToCart = false;
+        });
+      }
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -94,6 +138,22 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen> {
                 Chip(label: Text('Stock: ${product.stock}')),
                 if (product.brand.isNotEmpty) Chip(label: Text(product.brand)),
               ],
+            ),
+            SizedBox(height: 14.h),
+            // Enhancement 3: Add this product to the user cart by posting product values to `/carts/add`.
+            SizedBox(
+              width: double.infinity,
+              child: FilledButton.icon(
+                onPressed: _isAddingToCart ? null : _addToCart,
+                icon: _isAddingToCart
+                    ? SizedBox(
+                        width: 18.w,
+                        height: 18.w,
+                        child: const CircularProgressIndicator(strokeWidth: 2),
+                      )
+                    : const Icon(Icons.add_shopping_cart),
+                label: Text(_isAddingToCart ? 'Adding...' : 'Add to Cart'),
+              ),
             ),
             SizedBox(height: 14.h),
             CustomText(
