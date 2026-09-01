@@ -5,6 +5,24 @@ import '../models/user.dart';
 import '../services/user_service.dart';
 import '../widgets/custom_text.dart';
 
+Color _profilePageBackground(BuildContext context) =>
+    Theme.of(context).brightness == Brightness.dark
+        ? const Color(0xFF121014)
+        : const Color(0xFFFAFAFF);
+
+Color _profileCardBackground(BuildContext context) =>
+    Theme.of(context).brightness == Brightness.dark
+        ? const Color(0xFF1E1C24)
+        : Colors.white;
+
+Color _profileAvatarBackground(BuildContext context) =>
+    Theme.of(context).brightness == Brightness.dark
+        ? const Color(0xFF2A2833)
+        : const Color(0xFFF0F2FB);
+
+Color _profileMutedText(BuildContext context) =>
+    Theme.of(context).colorScheme.onSurfaceVariant;
+
 class ProfileScreen extends StatefulWidget {
   const ProfileScreen({super.key});
 
@@ -61,7 +79,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
         }
 
         return Container(
-          color: const Color(0xFFFAFAFF),
+          color: _profilePageBackground(context),
           child: SingleChildScrollView(
             padding: EdgeInsets.fromLTRB(14.w, 14.h, 14.w, 18.h),
             child: Column(
@@ -73,7 +91,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     horizontal: 14.w,
                   ),
                   decoration: BoxDecoration(
-                    color: Colors.white,
+                    color: _profileCardBackground(context),
                     borderRadius: BorderRadius.circular(16.r),
                     boxShadow: [
                       BoxShadow(
@@ -90,7 +108,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                         height: 74.w,
                         decoration: BoxDecoration(
                           shape: BoxShape.circle,
-                          color: const Color(0xFFF0F2FB),
+                          color: _profileAvatarBackground(context),
                           image: user.image.isNotEmpty
                               ? DecorationImage(
                                   image: NetworkImage(user.image),
@@ -108,7 +126,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
                       Text(
                         user.displayName,
                         style: TextStyle(
-                          color: const Color(0xFF20232A),
                           fontSize: 23.sp,
                           fontWeight: FontWeight.w600,
                           fontFamily: 'Poppins',
@@ -132,7 +149,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   width: double.infinity,
                   padding: EdgeInsets.symmetric(vertical: 6.h),
                   decoration: BoxDecoration(
-                    color: Colors.white,
+                    color: _profileCardBackground(context),
                     borderRadius: BorderRadius.circular(16.r),
                     boxShadow: [
                       BoxShadow(
@@ -152,7 +169,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                       Divider(
                         height: 1.h,
                         thickness: 1,
-                        color: const Color(0xFFF1F1F4),
+                        color: Theme.of(context).dividerColor,
                       ),
                       _ProfileInfoTile(
                         icon: Icons.wc,
@@ -162,7 +179,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                       Divider(
                         height: 1.h,
                         thickness: 1,
-                        color: const Color(0xFFF1F1F4),
+                        color: Theme.of(context).dividerColor,
                       ),
                       _ProfileInfoTile(
                         icon: Icons.badge_outlined,
@@ -229,7 +246,6 @@ class _ProfileInfoTile extends StatelessWidget {
               label,
               style: TextStyle(
                 fontSize: 13.sp,
-                color: const Color(0xFF3A3A45),
                 fontWeight: FontWeight.w500,
                 fontFamily: 'Poppins',
               ),
@@ -245,7 +261,7 @@ class _ProfileInfoTile extends StatelessWidget {
                 textAlign: TextAlign.right,
                 style: TextStyle(
                   fontSize: 13.sp,
-                  color: const Color(0xFF8C8E99),
+                  color: _profileMutedText(context),
                   fontWeight: FontWeight.w500,
                   fontFamily: 'Poppins',
                 ),

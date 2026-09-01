@@ -7,6 +7,34 @@ import '../services/user_service.dart';
 import '../widgets/custom_text.dart';
 import 'detail_screen.dart';
 
+const Color _cartAccent = Color(0xFFFDBE2D);
+
+Color _cartPageBackground(BuildContext context) =>
+    Theme.of(context).brightness == Brightness.dark
+        ? const Color(0xFF17151C)
+        : const Color(0xFFF7F4FB);
+
+Color _cartCardBackground(BuildContext context) =>
+    Theme.of(context).brightness == Brightness.dark
+        ? const Color(0xFF241F2B)
+        : Colors.white;
+
+Color _cartThumbBackground(BuildContext context) =>
+    Theme.of(context).brightness == Brightness.dark
+        ? const Color(0xFF2E2937)
+        : const Color(0xFFF8F6FB);
+
+Color _cartSecondaryText(BuildContext context) =>
+    Theme.of(context).colorScheme.onSurfaceVariant;
+
+Color _cartMutedButtonBackground(BuildContext context) =>
+    Theme.of(context).brightness == Brightness.dark
+        ? const Color(0xFF332E3B)
+        : const Color(0xFFF1EEF6);
+
+Color _cartMutedButtonForeground(BuildContext context) =>
+    Theme.of(context).colorScheme.onSurfaceVariant;
+
 class CartScreen extends StatefulWidget {
   const CartScreen({super.key});
 
@@ -15,9 +43,6 @@ class CartScreen extends StatefulWidget {
 }
 
 class _CartScreenState extends State<CartScreen> {
-  static const Color _pageBackground = Color(0xFFF7F4FB);
-  static const Color _accent = Color(0xFFFDBE2D);
-  static const Color _secondaryText = Color(0xFF9E98A8);
   final CartService _cartService = CartService();
   final UserService _userService = UserService();
   late Future<Cart> _cartFuture;
@@ -122,7 +147,7 @@ class _CartScreenState extends State<CartScreen> {
         final deliveryFee = allItems.isEmpty ? 0.0 : 0.0;
 
         return Container(
-          color: _pageBackground,
+          color: _cartPageBackground(context),
           child: Column(
             children: [
               Expanded(
@@ -148,7 +173,7 @@ class _CartScreenState extends State<CartScreen> {
               Container(
                 padding: EdgeInsets.fromLTRB(8.w, 8.h, 8.w, 18.h),
                 decoration: BoxDecoration(
-                  color: _pageBackground,
+                  color: _cartPageBackground(context),
                   boxShadow: [
                     BoxShadow(
                       color: Colors.black.withValues(alpha: 0.05),
@@ -169,7 +194,7 @@ class _CartScreenState extends State<CartScreen> {
                       width: double.infinity,
                       child: FilledButton(
                         style: FilledButton.styleFrom(
-                          backgroundColor: _accent,
+                          backgroundColor: _cartAccent,
                           foregroundColor: Colors.black87,
                           padding: EdgeInsets.symmetric(vertical: 16.h),
                           shape: RoundedRectangleBorder(
@@ -206,10 +231,6 @@ class _CartItemCard extends StatelessWidget {
     required this.isUpdating,
   });
 
-  static const Color _cardBackground = Colors.white;
-  static const Color _accent = Color(0xFFFDBE2D);
-  static const Color _secondaryText = Color(0xFF9E98A8);
-
   final CartProduct item;
   final VoidCallback onIncrease;
   final VoidCallback onDecrease;
@@ -218,7 +239,7 @@ class _CartItemCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Material(
-      color: _cardBackground,
+      color: _cartCardBackground(context),
       borderRadius: BorderRadius.circular(18.r),
       child: InkWell(
         borderRadius: BorderRadius.circular(18.r),
@@ -237,7 +258,7 @@ class _CartItemCard extends StatelessWidget {
                 width: 72.w,
                 height: 72.w,
                 decoration: BoxDecoration(
-                  color: const Color(0xFFF8F6FB),
+                  color: _cartThumbBackground(context),
                   borderRadius: BorderRadius.circular(14.r),
                 ),
                 padding: EdgeInsets.all(8.r),
@@ -246,7 +267,7 @@ class _CartItemCard extends StatelessWidget {
                   fit: BoxFit.contain,
                   errorBuilder: (context, error, stackTrace) => Icon(
                     Icons.image_outlined,
-                    color: _secondaryText,
+                    color: _cartSecondaryText(context),
                     size: 24.sp,
                   ),
                 ),
@@ -272,7 +293,7 @@ class _CartItemCard extends StatelessWidget {
                       style: TextStyle(
                         fontSize: 18.sp,
                         fontWeight: FontWeight.w700,
-                        color: _accent,
+                        color: _cartAccent,
                         fontFamily: 'Poppins',
                       ),
                     ),
@@ -281,7 +302,7 @@ class _CartItemCard extends StatelessWidget {
                       '${item.discountPercentage.toStringAsFixed(0)}% off • \$${(item.discountedTotal > 0 ? item.discountedTotal : item.total).toStringAsFixed(2)} total',
                       style: TextStyle(
                         fontSize: 11.sp,
-                        color: _secondaryText,
+                        color: _cartSecondaryText(context),
                         fontFamily: 'Poppins',
                       ),
                     ),
@@ -293,7 +314,7 @@ class _CartItemCard extends StatelessWidget {
                 children: [
                   _QuantityButton(
                     icon: Icons.add,
-                    backgroundColor: _accent,
+                    backgroundColor: _cartAccent,
                     foregroundColor: Colors.black87,
                     onTap: isUpdating ? null : onIncrease,
                   ),
@@ -309,8 +330,8 @@ class _CartItemCard extends StatelessWidget {
                   SizedBox(height: 8.h),
                   _QuantityButton(
                     icon: Icons.remove,
-                    backgroundColor: const Color(0xFFF1EEF6),
-                    foregroundColor: const Color(0xFF746D7B),
+                    backgroundColor: _cartMutedButtonBackground(context),
+                    foregroundColor: _cartMutedButtonForeground(context),
                     onTap: isUpdating ? null : onDecrease,
                   ),
                 ],
@@ -370,7 +391,7 @@ class _SummaryRow extends StatelessWidget {
           label,
           style: TextStyle(
             fontSize: 13.sp,
-            color: _CartScreenState._secondaryText,
+            color: _cartSecondaryText(context),
             fontFamily: 'Poppins',
           ),
         ),
@@ -379,7 +400,7 @@ class _SummaryRow extends StatelessWidget {
           style: TextStyle(
             fontSize: 15.sp,
             fontWeight: FontWeight.w700,
-            color: _CartScreenState._accent,
+            color: _cartAccent,
             fontFamily: 'Poppins',
           ),
         ),

@@ -54,7 +54,7 @@ class _SigninScreenState extends State<SigninScreen> {
         });
 
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Login failed: ${e.toString()}')),
+          const SnackBar(content: Text('Invalid username or password.')),
         );
       }
     } else {

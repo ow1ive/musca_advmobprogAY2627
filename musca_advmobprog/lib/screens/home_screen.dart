@@ -55,11 +55,14 @@ class _HomeScreenState extends State<HomeScreen> {
     final isCartTab = _selectedIndex == 1;
     final isProfileTab = _selectedIndex == 2;
     final hasAccentHeader = isCartTab || isProfileTab;
+    final cartPageBackground = Theme.of(context).brightness == Brightness.dark
+        ? const Color(0xFF17151C)
+        : const Color(0xFFF7F4FB);
 
     return PopScope(
       canPop: false,
       child: Scaffold(
-        backgroundColor: isCartTab ? const Color(0xFFF7F4FB) : null,
+        backgroundColor: isCartTab ? cartPageBackground : null,
         appBar: AppBar(
           automaticallyImplyLeading: false,
           elevation: hasAccentHeader ? 0 : 2,
@@ -121,9 +124,7 @@ class _HomeScreenState extends State<HomeScreen> {
               ),
         floatingActionButtonLocation: FloatingActionButtonLocation.endFloat,
         bottomNavigationBar: BottomAppBar(
-          color: isCartTab
-              ? const Color(0xFFF7F4FB)
-              : Theme.of(context).cardColor,
+          color: isCartTab ? cartPageBackground : Theme.of(context).cardColor,
           child: SizedBox(
             height: 64.h,
             child: Row(

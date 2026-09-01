@@ -1,20 +1,3 @@
-# musca_advmobprog
-
-A new Flutter project.
-
-## Getting Started
-
-This project is a starting point for a Flutter application.
-
-A few resources to get you started if this is your first Flutter project:
-
-- [Lab: Write your first Flutter app](https://docs.flutter.dev/get-started/codelab)
-- [Cookbook: Useful Flutter samples](https://docs.flutter.dev/cookbook)
-
-For help getting started with Flutter development, view the
-[online documentation](https://docs.flutter.dev/), which offers tutorials,
-samples, guidance on mobile development, and a full API reference.
-
 ## Lab Activity 4: Laboratory Discussion
 
 In this activity, I learned how the User Model, Service, and Screen work together to display the user's information from the API. The User Model organizes the information about the user, while the User Service handles the login and gets the user's data from the API. The Profile Screen then uses that data to show the user's information on the app. I also learned that separating these parts makes the code easier to understand because each part has its own responsibility.
