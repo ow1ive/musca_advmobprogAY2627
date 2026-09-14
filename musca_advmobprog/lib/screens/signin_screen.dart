@@ -14,54 +14,97 @@ class _SigninScreenState extends State<SigninScreen> {
   final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
   final TextEditingController _usernameController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
+  final UserService _userService = UserService();
   bool _isLoading = false;
   bool _rememberMe = false;
   bool _obscurePassword = true;
+  bool _handledArrivalMessage = false;
 
-  // ENHANCEMENT: Authenticate user, persist session, and route to home.
-  Future<void> _login() async {
-    UserService userService = UserService();
-    setState(() {
-      _isLoading = true;
-    });
-
-    if (_formKey.currentState!.validate()) {
-      try {
-        final response = await userService.loginUser(
-          _usernameController.text.trim(),
-          _passwordController.text,
-        );
-
-        // Save user data to SharedPreferences.
-        await userService.saveUserData(response);
-
-        if (!mounted) {
-          return;
-        }
-
-        setState(() {
-          _isLoading = false;
-        });
-
-        Navigator.pushReplacementNamed(context, '/home', arguments: response);
-      } catch (e) {
-        if (!mounted) {
-          return;
-        }
-
-        setState(() {
-          _isLoading = false;
-        });
-
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    // Shows messages passed via navigation arguments, e.g. after account deletion.
+    if (_handledArrivalMessage) return;
+    _handledArrivalMessage = true;
+    final message = ModalRoute.of(context)?.settings.arguments as String?;
+    if (message != null) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (!mounted) return;
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Invalid username or password.')),
+          SnackBar(content: Text(message), backgroundColor: Colors.green),
         );
-      }
-    } else {
-      setState(() {
-        _isLoading = false;
       });
     }
+  }
+
+  // ENHANCEMENT: Authenticate against DummyJSON, falling back to Firebase
+  // so accounts created with "Create Account" can sign back in here too.
+  Future<void> _login() async {
+    if (!_formKey.currentState!.validate()) {
+      return;
+    }
+
+    setState(() => _isLoading = true);
+
+    final identifier = _usernameController.text.trim();
+    final password = _passwordController.text;
+
+    try {
+      final response = await _userService.loginUser(identifier, password);
+      await _userService.saveUserData(response);
+
+      if (!mounted) return;
+      setState(() => _isLoading = false);
+      Navigator.pushReplacementNamed(context, '/home', arguments: response);
+      return;
+    } catch (_) {
+      // Not a DummyJSON test account — fall back to Firebase below.
+    }
+
+    try {
+      await _userService.signIn(email: identifier, password: password);
+      if (await _enterHomeWithFirebaseUser()) {
+        if (mounted) setState(() => _isLoading = false);
+        return;
+      }
+    } catch (_) {
+      // Neither backend recognized these credentials.
+    }
+
+    if (!mounted) return;
+    setState(() => _isLoading = false);
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text('Invalid username or password.')),
+    );
+  }
+
+  // Builds a local session from the signed-in Firebase user and opens Home.
+  Future<bool> _enterHomeWithFirebaseUser() async {
+    final fbUser = _userService.currentUser;
+    if (fbUser == null) {
+      return false;
+    }
+
+    final token = await fbUser.getIdToken() ?? '';
+    final userData = {
+      'id': fbUser.uid.hashCode.abs(),
+      'username':
+          fbUser.displayName ?? (fbUser.email ?? 'user').split('@').first,
+      'email': fbUser.email ?? '',
+      'firstName': '',
+      'lastName': '',
+      'gender': '',
+      'image': fbUser.photoURL ?? '',
+      'accessToken': token,
+      'refreshToken': '',
+      'token': token,
+      'loginType': 'firebase',
+    };
+    await _userService.saveUserData(userData);
+
+    if (!mounted) return true;
+    Navigator.pushReplacementNamed(context, '/home', arguments: userData);
+    return true;
   }
 
   @override
@@ -318,13 +361,19 @@ class _SigninScreenState extends State<SigninScreen> {
                           fontFamily: 'Poppins',
                         ),
                       ),
-                      Text(
-                        'Sign Up',
-                        style: TextStyle(
-                          color: const Color(0xFF4D58E5),
-                          fontSize: 14.sp,
-                          fontWeight: FontWeight.w600,
-                          fontFamily: 'Poppins',
+                      // ENHANCEMENT 2: Opens the dedicated Sign Up screen.
+                      GestureDetector(
+                        onTap: _isLoading
+                            ? null
+                            : () => Navigator.pushNamed(context, '/signup'),
+                        child: Text(
+                          'Create Account',
+                          style: TextStyle(
+                            color: const Color(0xFF4D58E5),
+                            fontSize: 14.sp,
+                            fontWeight: FontWeight.w600,
+                            fontFamily: 'Poppins',
+                          ),
                         ),
                       ),
                     ],

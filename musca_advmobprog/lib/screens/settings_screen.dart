@@ -2,9 +2,23 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 import '../providers/theme_provider.dart';
+import '../services/user_service.dart';
 
 class SettingsScreen extends StatelessWidget {
   const SettingsScreen({super.key});
+
+  // ENHANCEMENT 1: Logout clears both DummyJSON and Firebase sessions, then returns to sign in.
+  Future<void> _logout(BuildContext context) async {
+    final userService = UserService();
+    await userService.logout();
+    await userService.signOut();
+
+    if (!context.mounted) {
+      return;
+    }
+
+    Navigator.pushNamedAndRemoveUntil(context, '/signin', (route) => false);
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -39,6 +53,22 @@ class SettingsScreen extends StatelessWidget {
                 value: themeModel.isDark,
                 // Enhancement 3: Toggle app theme directly from this settings switch.
                 onChanged: (_) => themeModel.toggleTheme(),
+              ),
+            ),
+            const SizedBox(height: 24),
+            Text(
+              'Account',
+              style: Theme.of(context).textTheme.headlineSmall,
+            ),
+            const SizedBox(height: 16),
+            Card(
+              child: ListTile(
+                leading: const Icon(Icons.logout, color: Colors.red),
+                title: const Text(
+                  'Logout',
+                  style: TextStyle(color: Colors.red),
+                ),
+                onTap: () => _logout(context),
               ),
             ),
           ],

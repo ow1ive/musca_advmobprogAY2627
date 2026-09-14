@@ -178,4 +178,11 @@ class CartService {
     _cachedUserCarts[userId] = updatedCart;
     return updatedCart;
   }
+
+  // Clears the local cart once the order has been confirmed.
+  Future<Cart> clearCart(int userId) async {
+    final emptyCart = Cart.empty(userId: userId);
+    _cachedUserCarts[userId] = emptyCart;
+    return emptyCart;
+  }
 }

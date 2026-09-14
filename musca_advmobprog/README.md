@@ -1,5 +1,7 @@
-## Lab Activity 4: Laboratory Discussion
+## Lab Activity 5: Laboratory Discussion
 
-In this activity, I learned how the User Model, Service, and Screen work together to display the user's information from the API. The User Model organizes the information about the user, while the User Service handles the login and gets the user's data from the API. The Profile Screen then uses that data to show the user's information on the app. I also learned that separating these parts makes the code easier to understand because each part has its own responsibility.
+In this activity, we used DummyJSON for login by sending the username and password to an API. In this activity, we changed it to Firebase Authentication, where sign-in and sign-up are handled through Firebase.
 
-The updated design also helped me understand how saved user data can be used in other parts of the app. After logging in, the user's information is saved using SharedPreferences. The saved user ID can then be retrieved and used in the Cart Screen to get the cart that belongs to that specific user. This means the app does not need to manually set a user ID every time. Through this activity, I understood better how authentication, local storage, API services, models, and screens can work together in one application.
+The main purpose of UserService is to keep the authentication and user functions in one place, such as sign-in, sign-up, logout, and account updates. This makes the code more organized and easier to manage.
+
+Firebase is also more useful for our application because it provides authentication, token handling, and security features. It also makes it easier to add account functions like changing passwords and deleting accounts.

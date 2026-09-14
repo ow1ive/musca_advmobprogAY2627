@@ -48,6 +48,7 @@ class _CartScreenState extends State<CartScreen> {
   late Future<Cart> _cartFuture;
   int _activeUserId = 1;
   bool _isUpdatingCart = false;
+  bool _isConfirmingOrder = false;
 
   @override
   void initState() {
@@ -100,6 +101,42 @@ class _CartScreenState extends State<CartScreen> {
       if (mounted) {
         setState(() {
           _isUpdatingCart = false;
+        });
+      }
+    }
+  }
+
+  Future<void> _confirmOrder() async {
+    setState(() {
+      _isConfirmingOrder = true;
+    });
+
+    try {
+      final clearedCart = await _cartService.clearCart(_activeUserId);
+
+      if (!mounted) {
+        return;
+      }
+
+      setState(() {
+        _cartFuture = Future.value(clearedCart);
+      });
+
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text('Order confirmed!')));
+    } catch (error) {
+      if (!mounted) {
+        return;
+      }
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Unable to confirm order: $error')),
+      );
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isConfirmingOrder = false;
         });
       }
     }
@@ -201,15 +238,24 @@ class _CartScreenState extends State<CartScreen> {
                             borderRadius: BorderRadius.circular(14.r),
                           ),
                         ),
-                        onPressed: () {},
-                        child: Text(
-                          'Confirm Order',
-                          style: TextStyle(
-                            fontSize: 15.sp,
-                            fontWeight: FontWeight.w700,
-                            fontFamily: 'Poppins',
-                          ),
-                        ),
+                        onPressed: _isConfirmingOrder ? null : _confirmOrder,
+                        child: _isConfirmingOrder
+                            ? SizedBox(
+                                width: 18.w,
+                                height: 18.w,
+                                child: const CircularProgressIndicator(
+                                  strokeWidth: 2,
+                                  color: Colors.black87,
+                                ),
+                              )
+                            : Text(
+                                'Confirm Order',
+                                style: TextStyle(
+                                  fontSize: 15.sp,
+                                  fontWeight: FontWeight.w700,
+                                  fontFamily: 'Poppins',
+                                ),
+                              ),
                       ),
                     ),
                   ],

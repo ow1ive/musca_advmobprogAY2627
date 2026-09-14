@@ -1,3 +1,5 @@
+import 'package:firebase_auth/firebase_auth.dart' as firebase_auth;
+
 import 'dart:convert';
 
 import 'package:http/http.dart' as http;
@@ -57,6 +59,9 @@ class UserService {
     } else {
       await prefs.setString('token', userData['accessToken'] ?? '');
     }
+
+    // ENHANCEMENT 3: Remember how the user signed in (dummyjson vs firebase).
+    await prefs.setString('loginType', userData['loginType'] ?? 'dummyjson');
   }
 
   Future<Map<String, dynamic>> getUserData() async {
@@ -73,12 +78,19 @@ class UserService {
       'accessToken': prefs.getString('accessToken') ?? '',
       'refreshToken': prefs.getString('refreshToken') ?? '',
       'token': prefs.getString('token') ?? prefs.getString('accessToken') ?? '',
+      'loginType': prefs.getString('loginType') ?? 'dummyjson',
     };
   }
 
   Future<User> getUser() async {
     final userData = await getUserData();
     return User.fromJson(userData);
+  }
+
+  // ENHANCEMENT 3: Drives the profile screen's "show details based on LoginType" behavior.
+  Future<String> getLoginType() async {
+    final userData = await getUserData();
+    return userData['loginType'] as String;
   }
 
   Future<bool> isLoggedIn() async {
@@ -107,5 +119,71 @@ class UserService {
     }
 
     throw Exception('Failed to load user');
+  }
+
+  // ENHANCEMENT 1: Firebase Auth-backed session management.
+  final firebase_auth.FirebaseAuth firebaseAuth =
+      firebase_auth.FirebaseAuth.instance;
+
+  firebase_auth.User? get currentUser => firebaseAuth.currentUser;
+
+  // Cached so widgets subscribing to this stream don't resubscribe to a new
+  // Stream instance on every rebuild (the plugin returns a new one per call).
+  late final Stream<firebase_auth.User?> authStateChanges = firebaseAuth
+      .authStateChanges();
+
+  Future<firebase_auth.UserCredential> signIn({
+    required String email,
+    required String password,
+  }) async {
+    return await firebaseAuth.signInWithEmailAndPassword(
+      email: email,
+      password: password,
+    );
+  }
+
+  Future<firebase_auth.UserCredential> createAccount({
+    required String email,
+    required String password,
+  }) async {
+    return await firebaseAuth.createUserWithEmailAndPassword(
+      email: email,
+      password: password,
+    );
+  }
+
+  Future<void> signOut() async {
+    await firebaseAuth.signOut();
+  }
+
+  Future<void> updateUsername({required String username}) async {
+    await currentUser!.updateDisplayName(username);
+  }
+
+  Future<void> deleteAccount({
+    required String email,
+    required String password,
+  }) async {
+    final credential = firebase_auth.EmailAuthProvider.credential(
+      email: email,
+      password: password,
+    );
+
+    await currentUser!.reauthenticateWithCredential(credential);
+    await currentUser!.delete();
+    await firebaseAuth.signOut();
+  }
+
+  Future<void> resetPasswordFromCurrentPassword({
+    required String currentPassword,
+    required String newPassword,
+    required String email,
+  }) async {
+    final credential = firebase_auth.EmailAuthProvider.credential(
+      email: email,
+      password: currentPassword,
+    );
+    await currentUser!.reauthenticateWithCredential(credential);
+    await currentUser!.updatePassword(newPassword);
   }
 }
