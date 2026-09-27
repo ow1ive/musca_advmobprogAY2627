@@ -84,24 +84,24 @@ class _SignupScreenState extends State<SignupScreen> {
 
       final fbUser = _userService.currentUser;
       if (fbUser != null) {
-        final token = await fbUser.getIdToken() ?? '';
-        final userData = {
-          'id': fbUser.uid.hashCode.abs(),
-          'username': _usernameController.text.trim(),
-          'email': fbUser.email ?? '',
-          'firstName': _firstNameController.text.trim(),
-          'lastName': _lastNameController.text.trim(),
-          'gender': _selectedGender ?? '',
-          'image': '',
-          'accessToken': token,
-          'refreshToken': '',
-          'token': token,
-          'loginType': 'firebase',
-        };
-        await _userService.saveUserData(userData);
+        // Registers the user in Firestore so they appear in the chat list.
+        await _userService.upsertFirestoreProfile(
+          uid: fbUser.uid,
+          email: fbUser.email ?? '',
+          firstName: _firstNameController.text.trim(),
+          lastName: _lastNameController.text.trim(),
+          username: _usernameController.text.trim(),
+        );
+        // createAccount() auto-signs the user in; sign back out so they land
+        // on the sign-in page and log in manually, like a normal sign-up flow.
+        await _userService.signOut();
 
         if (!mounted) return;
-        Navigator.pushReplacementNamed(context, '/home', arguments: userData);
+        Navigator.pushReplacementNamed(
+          context,
+          '/signin',
+          arguments: 'Account created! Please sign in.',
+        );
         return;
       }
     } on firebase_auth.FirebaseAuthException catch (e) {

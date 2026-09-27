@@ -1,3 +1,4 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart' as firebase_auth;
 
 import 'dart:convert';
@@ -42,6 +43,7 @@ class UserService {
     final prefs = await SharedPreferences.getInstance();
 
     await prefs.setInt('id', userData['id'] ?? 0);
+    await prefs.setString('uid', userData['uid'] ?? '');
     await prefs.setString('username', userData['username'] ?? '');
     await prefs.setString('email', userData['email'] ?? '');
 
@@ -69,6 +71,7 @@ class UserService {
 
     return {
       'id': prefs.getInt('id') ?? 0,
+      'uid': prefs.getString('uid') ?? '',
       'username': prefs.getString('username') ?? '',
       'email': prefs.getString('email') ?? '',
       'firstName': prefs.getString('firstName') ?? '',
@@ -158,6 +161,13 @@ class UserService {
 
   Future<void> updateUsername({required String username}) async {
     await currentUser!.updateDisplayName(username);
+
+    // Keep the cached session and chat directory in sync with the new name.
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString('username', username);
+    await _firestore.collection('Users').doc(currentUser!.uid).set({
+      'username': username,
+    }, SetOptions(merge: true));
   }
 
   Future<void> deleteAccount({
@@ -168,9 +178,17 @@ class UserService {
       email: email,
       password: password,
     );
+    final uid = currentUser!.uid;
 
     await currentUser!.reauthenticateWithCredential(credential);
+    // Delete the Auth account first: if the Firestore cleanup below fails
+    // (e.g. security rules), the email is still freed up for reuse.
     await currentUser!.delete();
+    try {
+      await _firestore.collection('Users').doc(uid).delete();
+    } catch (_) {
+      // Non-fatal: an orphaned directory entry can be cleaned up manually.
+    }
     await firebaseAuth.signOut();
   }
 
@@ -185,5 +203,42 @@ class UserService {
     );
     await currentUser!.reauthenticateWithCredential(credential);
     await currentUser!.updatePassword(newPassword);
+  }
+
+  // Lets a signed-out user recover a Firebase account they forgot the password for.
+  Future<void> sendPasswordResetEmail({required String email}) async {
+    await firebaseAuth.sendPasswordResetEmail(email: email);
+  }
+
+  // Powers the chat feature's user list (Firestore "Users" collection).
+  final FirebaseFirestore _firestore = FirebaseFirestore.instance;
+
+  Future<void> upsertFirestoreProfile({
+    required String uid,
+    required String email,
+    String firstName = '',
+    String lastName = '',
+    String username = '',
+    String image = '',
+  }) async {
+    await _firestore.collection('Users').doc(uid).set({
+      'uid': uid,
+      'email': email,
+      'firstName': firstName,
+      'lastName': lastName,
+      'username': username,
+      'image': image,
+    }, SetOptions(merge: true));
+  }
+
+  // Lets sign-in accept a username by resolving it to the email on file.
+  Future<String?> getEmailByUsername(String username) async {
+    final q = await _firestore
+        .collection('Users')
+        .where('username', isEqualTo: username)
+        .limit(1)
+        .get();
+    if (q.docs.isEmpty) return null;
+    return (q.docs.first.data()['email'] ?? '').toString();
   }
 }

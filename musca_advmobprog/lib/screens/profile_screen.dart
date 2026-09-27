@@ -189,6 +189,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
       );
     } on firebase_auth.FirebaseAuthException catch (e) {
       _showSnack(e.message ?? e.code, isError: true);
+    } catch (e) {
+      _showSnack('Failed to delete account: $e', isError: true);
     }
   }
 

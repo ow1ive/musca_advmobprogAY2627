@@ -1,3 +1,4 @@
+import 'package:firebase_auth/firebase_auth.dart' as firebase_auth;
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 
@@ -62,7 +63,22 @@ class _SigninScreenState extends State<SigninScreen> {
     }
 
     try {
-      await _userService.signIn(email: identifier, password: password);
+      // Firebase Auth requires an email, so resolve a plain username to the
+      // email stored in Firestore when the user didn't type one.
+      String firebaseIdentifier = identifier;
+      if (!identifier.contains('@')) {
+        final resolvedEmail = await _userService.getEmailByUsername(
+          identifier,
+        );
+        if (resolvedEmail != null && resolvedEmail.isNotEmpty) {
+          firebaseIdentifier = resolvedEmail;
+        }
+      }
+
+      await _userService.signIn(
+        email: firebaseIdentifier,
+        password: password,
+      );
       if (await _enterHomeWithFirebaseUser()) {
         if (mounted) setState(() => _isLoading = false);
         return;
@@ -86,10 +102,12 @@ class _SigninScreenState extends State<SigninScreen> {
     }
 
     final token = await fbUser.getIdToken() ?? '';
+    final username =
+        fbUser.displayName ?? (fbUser.email ?? 'user').split('@').first;
     final userData = {
       'id': fbUser.uid.hashCode.abs(),
-      'username':
-          fbUser.displayName ?? (fbUser.email ?? 'user').split('@').first,
+      'uid': fbUser.uid,
+      'username': username,
       'email': fbUser.email ?? '',
       'firstName': '',
       'lastName': '',
@@ -101,10 +119,70 @@ class _SigninScreenState extends State<SigninScreen> {
       'loginType': 'firebase',
     };
     await _userService.saveUserData(userData);
+    // Merge so an existing signup profile (firstName/lastName) isn't wiped out.
+    await _userService.upsertFirestoreProfile(
+      uid: fbUser.uid,
+      email: fbUser.email ?? '',
+      username: username,
+      image: fbUser.photoURL ?? '',
+    );
 
     if (!mounted) return true;
     Navigator.pushReplacementNamed(context, '/home', arguments: userData);
     return true;
+  }
+
+  // Sends a Firebase password-reset email so a locked-out user can recover access.
+  Future<void> _forgotPassword() async {
+    final emailController = TextEditingController(
+      text: _usernameController.text.trim().contains('@')
+          ? _usernameController.text.trim()
+          : '',
+    );
+
+    final email = await showDialog<String>(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        title: const Text('Reset password'),
+        content: TextField(
+          controller: emailController,
+          keyboardType: TextInputType.emailAddress,
+          decoration: const InputDecoration(
+            labelText: 'Account email',
+            hintText: 'you@gmail.com',
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(dialogContext),
+            child: const Text('Cancel'),
+          ),
+          FilledButton(
+            onPressed: () =>
+                Navigator.pop(dialogContext, emailController.text.trim()),
+            child: const Text('Send reset link'),
+          ),
+        ],
+      ),
+    );
+
+    if (email == null || email.isEmpty) return;
+
+    try {
+      await _userService.sendPasswordResetEmail(email: email);
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Password reset email sent to $email.')),
+      );
+    } on firebase_auth.FirebaseAuthException catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(e.message ?? e.code),
+          backgroundColor: Colors.red,
+        ),
+      );
+    }
   }
 
   @override
@@ -168,7 +246,7 @@ class _SigninScreenState extends State<SigninScreen> {
                   ),
                   SizedBox(height: 30.h),
                   Text(
-                    'Username',
+                    'Username or Email',
                     style: TextStyle(
                       fontSize: 14.sp,
                       color: const Color(0xFF343845),
@@ -181,7 +259,7 @@ class _SigninScreenState extends State<SigninScreen> {
                     keyboardType: TextInputType.text,
                     style: TextStyle(fontSize: 16.sp, fontFamily: 'Poppins'),
                     decoration: InputDecoration(
-                      hintText: 'Enter your username',
+                      hintText: 'Enter your username or email',
                       hintStyle: TextStyle(
                         fontSize: 14.sp,
                         color: const Color(0xFFB3B6C1),
@@ -209,7 +287,7 @@ class _SigninScreenState extends State<SigninScreen> {
                     ),
                     validator: (value) {
                       if (value == null || value.trim().isEmpty) {
-                        return 'Username is required';
+                        return 'Username or email is required';
                       }
                       return null;
                     },
@@ -301,7 +379,7 @@ class _SigninScreenState extends State<SigninScreen> {
                       ),
                       const Spacer(),
                       TextButton(
-                        onPressed: () {},
+                        onPressed: _forgotPassword,
                         style: TextButton.styleFrom(
                           padding: EdgeInsets.zero,
                           minimumSize: const Size(0, 0),

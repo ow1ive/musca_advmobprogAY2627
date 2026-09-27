@@ -1,7 +1,3 @@
-## Lab Activity 5: Laboratory Discussion
+## Lab Activity 6: Laboratory Discussion
 
-In this activity, we used DummyJSON for login by sending the username and password to an API. In this activity, we changed it to Firebase Authentication, where sign-in and sign-up are handled through Firebase.
-
-The main purpose of UserService is to keep the authentication and user functions in one place, such as sign-in, sign-up, logout, and account updates. This makes the code more organized and easier to manage.
-
-Firebase is also more useful for our application because it provides authentication, token handling, and security features. It also makes it easier to add account functions like changing passwords and deleting accounts.
+When initiating a chat, Cloud Firestore organizes the users involved in the conversation using their respective user IDs. Each user has their own document containing information such as their username and email, while the chat stores the participants and the messages exchanged between them. The messages can contain details such as the sender ID, message content, and timestamp, allowing the system to identify who sent each message and when it was sent. If a user initiates a chat with themselves, the sender and receiver will have the same user ID. This results in a self-chat where the messages are still stored in the conversation, but both the sender and recipient refer to the same user. The behavior of self-chat depends on how the chat functionality is implemented in the application.

@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "458716723580",
+    "project_id": "musca-advmobprog",
+    "storage_bucket": "musca-advmobprog.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:458716723580:android:7e4c6a142a9542552dccf9",
+        "android_client_info": {
+          "package_name": "com.example.musca_advmobprog"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAu2ZsSoWjULljhwmPv0vA3sVO2YDVIazM"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

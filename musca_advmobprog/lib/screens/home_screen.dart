@@ -4,13 +4,15 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import '../services/user_service.dart';
 import '../widgets/custom_text.dart';
 import 'cart_screen.dart';
+import 'chat_screen.dart';
 import 'profile_screen.dart';
 import 'product_screen.dart';
 
 class HomeScreen extends StatefulWidget {
   final String username;
+  final int initialIndex;
 
-  const HomeScreen({super.key, this.username = ''});
+  const HomeScreen({super.key, this.username = '', this.initialIndex = 0});
 
   @override
   State<HomeScreen> createState() => _HomeScreenState();
@@ -19,9 +21,12 @@ class HomeScreen extends StatefulWidget {
 class _HomeScreenState extends State<HomeScreen> {
   static const Color _cartPrimary = Color(0xFF3346A4);
   final UserService _userService = UserService();
-  int _selectedIndex = 0;
+  late int _selectedIndex = widget.initialIndex;
   String _profileHeaderName = 'Profile';
-  final PageController _pageController = PageController();
+  late final PageController _pageController = PageController(
+    initialPage: widget.initialIndex,
+  );
+  String? _profileImage;
 
   @override
   void initState() {
@@ -40,6 +45,7 @@ class _HomeScreenState extends State<HomeScreen> {
       _profileHeaderName = user.firstName.isNotEmpty
           ? user.firstName
           : (user.username.isNotEmpty ? user.username : 'Profile');
+      _profileImage = user.image.isNotEmpty ? user.image : null;
     });
   }
 
@@ -117,7 +123,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 onPressed: () {
                   Navigator.push(
                     context,
-                    MaterialPageRoute(builder: (_) => const _ChatScreen()),
+                    MaterialPageRoute(builder: (_) => const ChatScreen()),
                   );
                 },
                 child: Icon(Icons.chat_bubble_rounded, size: 24.sp),
@@ -150,6 +156,8 @@ class _HomeScreenState extends State<HomeScreen> {
                 Expanded(
                   child: _NavAction(
                     icon: Icons.person,
+                    imageUrl: _profileImage,
+                    fallbackInitial: _profileHeaderName,
                     isSelected: _selectedIndex == 2,
                     selectedColor: isCartTab ? _cartPrimary : null,
                     unselectedColor: isCartTab ? const Color(0xFF78707E) : null,
@@ -178,6 +186,8 @@ class _NavAction extends StatelessWidget {
     required this.onTap,
     this.selectedColor,
     this.unselectedColor,
+    this.imageUrl,
+    this.fallbackInitial,
   });
 
   final IconData icon;
@@ -185,6 +195,8 @@ class _NavAction extends StatelessWidget {
   final VoidCallback onTap;
   final Color? selectedColor;
   final Color? unselectedColor;
+  final String? imageUrl;
+  final String? fallbackInitial;
 
   @override
   Widget build(BuildContext context) {
@@ -192,29 +204,24 @@ class _NavAction extends StatelessWidget {
         ? (selectedColor ?? Theme.of(context).colorScheme.primary)
         : (unselectedColor ?? Theme.of(context).iconTheme.color);
 
+    Widget child;
+    if (imageUrl != null && imageUrl!.isNotEmpty) {
+      child = CircleAvatar(radius: 12.sp, backgroundImage: NetworkImage(imageUrl!));
+    } else if (fallbackInitial != null && fallbackInitial!.isNotEmpty) {
+      child = CircleAvatar(
+        radius: 12.sp,
+        child: Text(
+          fallbackInitial![0].toUpperCase(),
+          style: TextStyle(fontSize: 12.sp, fontWeight: FontWeight.bold),
+        ),
+      );
+    } else {
+      child = Icon(icon, color: color, size: 24.sp);
+    }
+
     return InkWell(
       onTap: onTap,
-      child: Center(
-        child: Icon(icon, color: color, size: 24.sp),
-      ),
-    );
-  }
-}
-
-class _ChatScreen extends StatelessWidget {
-  const _ChatScreen();
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(title: const Text('Chat')),
-      body: Center(
-        child: CustomText(
-          text: 'Chat screen placeholder',
-          fontSize: 18.sp,
-          fontWeight: FontWeight.w600,
-        ),
-      ),
+      child: Center(child: child),
     );
   }
 }
